@@ -1,7 +1,7 @@
 /*
  * @Author: i@douxuefeng.cn
  * @Date: 2024-05-21 16:27:31
- * @LastEditTime: 2024-05-22 14:10:59
+ * @LastEditTime: 2024-05-22 16:20:46
  * @LastEditors: i@douxuefeng.cn
  * @Description:
  */
@@ -31,7 +31,7 @@ type DBCondition func(tx *gorm.DB) *gorm.DB
 func (r *repo[T]) List(ctx context.Context, page, size int, conds ...DBCondition) ([]*T, int64, error) {
 	var rows = make([]*T, 0)
 	var count int64
-	db = GetDB().Model(new(T))
+	db = GetDB().WithContext(ctx).Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
@@ -45,7 +45,7 @@ func (r *repo[T]) List(ctx context.Context, page, size int, conds ...DBCondition
 }
 
 func (r *repo[T]) Show(ctx context.Context, conds ...DBCondition) (*T, error) {
-	db = GetDB().Model(new(T))
+	db = GetDB().WithContext(ctx).Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
@@ -56,13 +56,13 @@ func (r *repo[T]) Show(ctx context.Context, conds ...DBCondition) (*T, error) {
 }
 
 func (r *repo[T]) Create(ctx context.Context, data *T) error {
-	err := GetDB().Model(new(T)).Create(data).Error
+	err := GetDB().WithContext(ctx).Model(new(T)).Create(data).Error
 	r.handleErr(ctx, err)
 	return err
 }
 
 func (r *repo[T]) Update(ctx context.Context, updates any, conds ...DBCondition) error {
-	db = GetDB().Model(new(T))
+	db = GetDB().WithContext(ctx).Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
@@ -72,7 +72,7 @@ func (r *repo[T]) Update(ctx context.Context, updates any, conds ...DBCondition)
 }
 
 func (r *repo[T]) Delete(ctx context.Context, conds ...DBCondition) error {
-	db = GetDB().Model(new(T))
+	db = GetDB().WithContext(ctx).Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
@@ -83,7 +83,7 @@ func (r *repo[T]) Delete(ctx context.Context, conds ...DBCondition) error {
 
 func (r *repo[T]) Search(ctx context.Context, conds ...DBCondition) ([]*T, error) {
 	var rows = make([]*T, 0)
-	db = GetDB().Model(new(T))
+	db = GetDB().WithContext(ctx).Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
@@ -93,7 +93,7 @@ func (r *repo[T]) Search(ctx context.Context, conds ...DBCondition) ([]*T, error
 }
 
 func (r *repo[T]) IsExist(ctx context.Context, conds ...DBCondition) bool {
-	db = GetDB().Model(new(T))
+	db = GetDB().WithContext(ctx).Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
