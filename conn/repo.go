@@ -1,7 +1,7 @@
 /*
  * @Author: i@douxuefeng.cn
  * @Date: 2024-05-21 16:27:31
- * @LastEditTime: 2024-05-22 08:47:28
+ * @LastEditTime: 2024-05-22 14:10:59
  * @LastEditors: i@douxuefeng.cn
  * @Description:
  */
@@ -28,10 +28,10 @@ func NewRepo[T DBModel]() *repo[T] {
 
 type DBCondition func(tx *gorm.DB) *gorm.DB
 
-func (r *repo[T]) List(ctx context.Context, db *gorm.DB, page, size int, conds ...DBCondition) ([]*T, int64, error) {
+func (r *repo[T]) List(ctx context.Context, page, size int, conds ...DBCondition) ([]*T, int64, error) {
 	var rows = make([]*T, 0)
 	var count int64
-	db = db.Model(new(T))
+	db = GetDB().Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
@@ -44,8 +44,8 @@ func (r *repo[T]) List(ctx context.Context, db *gorm.DB, page, size int, conds .
 	return rows, count, err
 }
 
-func (r *repo[T]) Show(ctx context.Context, db *gorm.DB, conds ...DBCondition) (*T, error) {
-	db = db.Model(new(T))
+func (r *repo[T]) Show(ctx context.Context, conds ...DBCondition) (*T, error) {
+	db = GetDB().Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
@@ -55,14 +55,14 @@ func (r *repo[T]) Show(ctx context.Context, db *gorm.DB, conds ...DBCondition) (
 	return &row, err
 }
 
-func (r *repo[T]) Create(ctx context.Context, db *gorm.DB, data *T) error {
-	err := db.Model(new(T)).Create(data).Error
+func (r *repo[T]) Create(ctx context.Context, data *T) error {
+	err := GetDB().Model(new(T)).Create(data).Error
 	r.handleErr(ctx, err)
 	return err
 }
 
-func (r *repo[T]) Update(ctx context.Context, db *gorm.DB, updates any, conds ...DBCondition) error {
-	db = db.Model(new(T))
+func (r *repo[T]) Update(ctx context.Context, updates any, conds ...DBCondition) error {
+	db = GetDB().Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
@@ -71,8 +71,8 @@ func (r *repo[T]) Update(ctx context.Context, db *gorm.DB, updates any, conds ..
 	return err
 }
 
-func (r *repo[T]) Delete(ctx context.Context, db *gorm.DB, conds ...DBCondition) error {
-	db = db.Model(new(T))
+func (r *repo[T]) Delete(ctx context.Context, conds ...DBCondition) error {
+	db = GetDB().Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
@@ -81,15 +81,28 @@ func (r *repo[T]) Delete(ctx context.Context, db *gorm.DB, conds ...DBCondition)
 	return err
 }
 
-func (r *repo[T]) Search(ctx context.Context, db *gorm.DB, conds ...DBCondition) ([]*T, error) {
+func (r *repo[T]) Search(ctx context.Context, conds ...DBCondition) ([]*T, error) {
 	var rows = make([]*T, 0)
-	db = db.Model(new(T))
+	db = GetDB().Model(new(T))
 	for _, v := range conds {
 		db.Scopes(v)
 	}
 	err := db.Find(&rows).Error
 	r.handleErr(ctx, err)
 	return rows, err
+}
+
+func (r *repo[T]) IsExist(ctx context.Context, conds ...DBCondition) bool {
+	db = GetDB().Model(new(T))
+	for _, v := range conds {
+		db.Scopes(v)
+	}
+	var count int64
+	err := db.Count(&count).Error
+	if err != nil {
+		return false
+	}
+	return count > 0
 }
 
 func (r *repo[T]) handleErr(ctx context.Context, err error) {
