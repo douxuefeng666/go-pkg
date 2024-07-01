@@ -1,8 +1,8 @@
 /*
  * @Author: i@douxuefeng.cn
  * @Date: 2024-05-21 16:17:00
- * @LastEditTime: 2024-05-21 16:23:57
- * @LastEditors: i@douxuefeng.cn
+ * @LastEditTime: 2024-07-01 15:12:35
+ * @LastEditors: Please set LastEditors
  * @Description:
  */
 package conn
@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	db    *gorm.DB
+	sdb   *gorm.DB
 	sqlDb *sql.DB
 )
 
@@ -35,7 +35,7 @@ type DBOpt struct {
 
 func InitDb(ctx context.Context, opt *DBOpt) error {
 	var err error
-	db, err = gorm.Open(mysql.Open(opt.Dsn), &gorm.Config{
+	sdb, err = gorm.Open(mysql.Open(opt.Dsn), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: opt.DisableForeignKeyConstraintWhenMigrating,
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
@@ -49,12 +49,12 @@ func InitDb(ctx context.Context, opt *DBOpt) error {
 		return err
 	}
 	if opt.EnableMigrate {
-		if err := db.AutoMigrate(opt.Models...); err != nil {
+		if err := sdb.AutoMigrate(opt.Models...); err != nil {
 			return err
 		}
 	}
 	//连接池设置
-	if sqlDb, err = db.DB(); err != nil {
+	if sqlDb, err = sdb.DB(); err != nil {
 		return err
 	} else {
 		sqlDb.SetConnMaxIdleTime(time.Hour)
@@ -65,7 +65,7 @@ func InitDb(ctx context.Context, opt *DBOpt) error {
 }
 
 func GetDB() *gorm.DB {
-	return db
+	return sdb
 }
 
 func CloseDB() {
